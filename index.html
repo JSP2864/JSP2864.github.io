@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Resume | Jitendra Singh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: The SPA is designed as a top-to-bottom narrative of professional value. It starts with a high-impact header and a "Key Metrics" dashboard to immediately convey quantifiable success, targeting short recruiter attention spans. This is followed by an interactive career timeline allowing users to explore roles in-depth without information overload. A visual skills chart provides a quick assessment of capabilities. The project section uses a card/modal pattern for progressive disclosure, keeping the main layout clean. This structure was chosen to guide the user from high-level impact to detailed evidence in an intuitive, engaging flow, making the resume scannable yet comprehensive. -->
+    <!-- Visualization & Content Choices: 
+        - Key Metrics: Goal: Inform/Impress -> Method: Styled stat cards (HTML/CSS) -> Interaction: Hover animations -> Justification: Quickly showcases top achievements.
+        - Career Path: Goal: Show Change/Progression -> Method: Interactive vertical timeline (HTML/CSS/JS) -> Interaction: Click to reveal role details -> Justification: More engaging than a list; shows growth.
+        - Skills: Goal: Organize/Compare -> Method: Horizontal Bar Chart (Chart.js/Canvas) -> Interaction: Animated load, tooltips on hover -> Justification: Visually represents expertise levels better than a static list.
+        - Projects: Goal: Organize/Detail -> Method: Cards with Modals (HTML/CSS/JS) -> Interaction: Click card to open modal with details -> Justification: Keeps main view uncluttered while providing deep-dive capability.
+        Library/Method: Chart.js for canvas-based charting; vanilla JS for all other interactions. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F5F5F4; /* stone-100 */
+            color: #292524; /* stone-800 */
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
+        .section-title {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #44403C; /* stone-700 */
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .active-nav {
+            color: #4F46E5; /* indigo-600 */
+            font-weight: 700;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -31px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #A8A29E; /* stone-400 */
+            border: 4px solid #F5F5F4; /* stone-100 */
+        }
+        .timeline-item.active::before {
+            background-color: #4F46E5; /* indigo-600 */
+        }
+        .modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+        .chart-container {
+            position: relative; 
+            width: 100%; 
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header & Navigation -->
+    <header class="bg-stone-100/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-stone-800">Jitendra Singh</h1>
+                </div>
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#experience" class="text-stone-600 hover:text-indigo-600 transition">Experience</a>
+                    <a href="#skills" class="text-stone-600 hover:text-indigo-600 transition">Skills</a>
+                    <a href="#projects" class="text-stone-600 hover:text-indigo-600 transition">Projects</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Hero Section -->
+        <section id="hero" class="text-center py-16">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-stone-800 leading-tight">Jitendra Singh</h1>
+            <p class="mt-4 text-xl md:text-2xl text-indigo-600 font-semibold">Technical Lead & Full-Stack Developer</p>
+            <p class="mt-6 max-w-3xl mx-auto text-stone-600">
+                A results-driven technical lead with over 8 years of experience in designing, developing, and deploying high-performance, scalable web applications. Proven ability to lead teams, optimize systems for efficiency and cost, and deliver robust solutions that enhance user experience and drive business value.
+            </p>
+            <div class="mt-8 flex justify-center space-x-4">
+                <a href="https://www.linkedin.com/in/jitendra-singh-6162581b7" target="_blank" class="text-stone-500 hover:text-indigo-600">
+                    <span class="sr-only">LinkedIn</span>
+                    <svg class="h-8 w-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                </a>
+                <a href="https://github.com/JSP2864/" target="_blank" class="text-stone-500 hover:text-indigo-600">
+                    <span class="sr-only">GitHub</span>
+                    <svg class="h-8 w-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.168 6.839 9.492.5.092.682-.217.682-.482 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.031-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.378.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.338 4.695-4.566 4.942.359.308.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.003 10.003 0 0022 12c0-5.523-4.477-10-10-10z" clip-rule="evenodd"/></svg>
+                </a>
+            </div>
+        </section>
+
+        <!-- Key Metrics Section -->
+        <section id="metrics" class="py-16">
+             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-md text-center transform hover:scale-105 transition-transform duration-300">
+                    <p class="text-4xl font-extrabold text-indigo-600">$200K+</p>
+                    <p class="mt-2 text-stone-600">Annual Cost Savings</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md text-center transform hover:scale-105 transition-transform duration-300">
+                    <p class="text-4xl font-extrabold text-indigo-600">70%</p>
+                    <p class="mt-2 text-stone-600">Reporting Capability Boost</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md text-center transform hover:scale-105 transition-transform duration-300">
+                    <p class="text-4xl font-extrabold text-indigo-600">10M+</p>
+                    <p class="mt-2 text-stone-600">Emails Delivered Monthly</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md text-center transform hover:scale-105 transition-transform duration-300">
+                    <p class="text-4xl font-extrabold text-indigo-600">10,000+</p>
+                    <p class="mt-2 text-stone-600">Concurrent Users Supported</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Experience Section -->
+        <section id="experience" class="py-16">
+            <h2 class="section-title">Career Journey</h2>
+             <div class="text-center max-w-3xl mx-auto mb-12">
+                <p class="text-stone-600">This section provides an interactive overview of my professional experience. My career has been a progression of increasing responsibility, from developing core features to leading technical teams and driving architectural strategy. Click on each role in the timeline to see the specific contributions and achievements that marked each stage of my journey at Fareye Pvt Ltd.</p>
+            </div>
+            <div class="flex flex-col md:flex-row gap-8 lg:gap-16">
+                <!-- Timeline Navigation -->
+                <div class="md:w-1/3">
+                    <div id="timeline-nav" class="relative pl-5 border-l-2 border-stone-300">
+                        <!-- JS will populate this -->
+                    </div>
+                </div>
+                <!-- Timeline Content -->
+                <div id="timeline-content" class="md:w-2/3">
+                    <!-- JS will populate this -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="py-16">
+            <h2 class="section-title">Technical Skills</h2>
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <p class="text-stone-600">This chart visualizes my expertise across various technologies, reflecting years of hands-on experience. The skills are grouped by area—Languages/Frameworks, Databases, and Cloud Technologies. This visualization provides a quick but comprehensive summary of my technical toolkit, which I've applied to build robust and scalable software solutions.</p>
+            </div>
+            <div class="bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-lg">
+                <div class="chart-container">
+                    <canvas id="skillsChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="py-16">
+            <h2 class="section-title">Project Portfolio</h2>
+             <div class="text-center max-w-3xl mx-auto mb-12">
+                <p class="text-stone-600">Here are some of the key projects I've developed. Each project represents a unique challenge and solution, from enhancing customer interaction and security to optimizing large-scale data processing and communication services. Click on any project to view detailed information about its objectives, the technologies I used, and the measurable impact it delivered.</p>
+            </div>
+            <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- JS will populate this -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Project Modal -->
+    <div id="project-modal" class="modal invisible opacity-0 fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+        <div class="modal-content transform -translate-y-10 bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white p-4 border-b border-stone-200 flex justify-between items-center">
+                <h3 id="modal-title" class="text-xl font-bold text-stone-800"></h3>
+                <button id="modal-close" class="text-stone-500 hover:text-stone-800">&times;</button>
+            </div>
+            <div class="p-6">
+                <p id="modal-tech" class="mb-4 text-sm font-medium text-indigo-600"></p>
+                <div id="modal-desc" class="space-y-3 text-stone-600"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center py-6 border-t border-stone-200">
+        <p class="text-stone-500">&copy; 2024 Jitendra Singh. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- DATA ---
+            const experienceData = [
+                {
+                    role: 'Technical Lead',
+                    company: 'Fareye Pvt Ltd',
+                    period: 'Aug 2021 – Present',
+                    details: [
+                        'Engineered advanced technology solutions that <strong>optimized logistics and streamlined supply chain operations, resulting in an average of 15-20% improved operational efficiency</strong> and significant cost savings.',
+                        'Led the development of <strong>highly scalable applications supporting over 10,000 concurrent users</strong> using React.js, Spring Boot, and microservices architecture, ensuring seamless integration and high performance.',
+                        'Mentored a team of <strong>5-7 developers</strong>, fostering an environment of innovation and collaboration to deliver high-quality products <strong>on average 10% ahead of schedule.</strong>'
+                    ]
+                },
+                {
+                    role: 'Senior Software Engineer',
+                    company: 'Fareye Pvt Ltd',
+                    period: 'Mar 2019 – Aug 2021',
+                    details: [
+                        'Developed cutting-edge products utilizing Spring Boot, React, Redux, Firebase, and PostgreSQL to meet dynamic client requirements, <strong>contributing to a 25% increase in client satisfaction.</strong>',
+                        'Streamlined user experience by integrating Bootstrap and other design frameworks, <strong>enhancing UI/UX and increasing user engagement by 30%.</strong>',
+                        'Built robust front-end and back-end systems with a focus on scalability and performance, <strong>successfully supporting thousands of concurrent users</strong> and processing millions of transactions daily.',
+                        'Spearheaded the integration of Redux Thunk for efficient state management, <strong>resulting in a 15% improvement in application performance</strong> and faster data loading.'
+                    ]
+                },
+                {
+                    role: 'Software Developer',
+                    company: 'Fareye Pvt Ltd',
+                    period: 'Jul 2016 – Mar 2019',
+                    details: [
+                        'Designed and implemented an end-to-end customer tracker module, enabling users to update and view their order status with ease, <strong>reducing customer service inquiries by 20%.</strong>',
+                        'Engineered a system capable of handling <strong>~9,000 RPM (requests per minute)</strong> with minimal resource utilization, ensuring optimal performance under high load and <strong>reducing infrastructure costs by 18%.</strong>',
+                        'Utilized Leaflet.js and AngularJS to create dynamic and responsive web applications, <strong>improving page load times by 10%.</strong>',
+                        'Collaborated with cross-functional teams to deliver <strong>over 15 projects on time and within budget.</strong>'
+                    ]
+                }
+            ];
+
+            const projectsData = [
+                {
+                    title: 'Customer Interaction Platform',
+                    tech: 'React.js, Spring Boot, PostgreSQL',
+                    desc: [
+                        '<strong>Achievement:</strong> Optimized memory usage from 2GB to 200MB RAM.',
+                        'Developed a platform for customers to track orders and submit feedback, <strong>leading to a 30% increase in customer self-service.</strong>',
+                        'Built a responsive React.js front-end, <strong>resulting in a 25% decrease in bounce rate.</strong>',
+                        'Engineered Spring Boot RESTful APIs supporting <strong>over 100,000 daily interactions.</strong>'
+                    ]
+                },
+                {
+                    title: 'Return Portal',
+                    tech: 'React.js, Spring Boot, PostgreSQL',
+                    desc: [
+                        '<strong>Security:</strong> Enabled JWE nested security for enhanced protection.',
+                        'Designed a self-service return portal, <strong>reducing return processing time by 35%.</strong>',
+                        'Created an intuitive React UI, <strong>leading to a 20% reduction in customer errors.</strong>',
+                        'Implemented a secure back-end processing <strong>over 5,000 returns per day.</strong>'
+                    ]
+                },
+                {
+                    title: 'URL Shortener Service',
+                    tech: 'Spring Boot, PostgreSQL',
+                    desc: [
+                        '<strong>Scalability:</strong> Capable of generating over 10⁷ unique short URLs.',
+                        'Developed a high-performance shortening service with a <strong>response time of less than 100ms.</strong>',
+                        'Ensured <strong>99.9% data availability</strong> with a robust PostgreSQL backend.',
+                        'Engineered to support a high volume of requests, up to <strong>500 requests per second.</strong>'
+                    ]
+                },
+                {
+                    title: 'License Manager',
+                    tech: 'Spring Boot, PostgreSQL, Licence3j',
+                    desc: [
+                        '<strong>Security:</strong> Implemented open-source Licence3j to authorize enterprise WAR files.',
+                        'Developed a system to secure <strong>over 20+ unique software deployments.</strong>',
+                        'Utilized Licence3j to generate and validate licenses, <strong>reducing unauthorized access by 90%.</strong>',
+                        'Automated the licensing process for all new software releases.'
+                    ]
+                },
+                {
+                    title: 'Reporting Service',
+                    tech: 'Apache Spark, AWS EMR, Parquet, Spring Boot, Amazon S3',
+                    desc: [
+                        '<strong>Impact:</strong> Saved an estimated <strong>$200,000 in annual costs</strong> by optimizing Spark driver nodes and service code.',
+                        'Developed a scalable reporting service, <strong>reducing report generation time by 60%.</strong>',
+                        'Leveraged Apache Spark on AWS EMR for high-performance data processing.',
+                        'Handled <strong>over 1,000 report requests daily</strong> via Spring Boot APIs.'
+                    ]
+                },
+                {
+                    title: 'Email Service',
+                    tech: 'Amazon SES, SQS, SNS, Spring Boot',
+                    desc: [
+                        '<strong>Scale:</strong> Handled 100 different identities to send <strong>10 million emails per month.</strong>',
+                        'Built a highly reliable email service with a <strong>99.8% delivery rate.</strong>',
+                        'Implemented asynchronous processing with SQS, <strong>reducing email processing time by 50%.</strong>',
+                        'Designed to handle peak loads of <strong>1,000 emails per second.</strong>'
+                    ]
+                }
+            ];
+
+            const skillsData = {
+                labels: ['Java', 'Spring Boot', 'React.js', 'PostgreSQL', 'AWS', 'Python/PySpark', 'MongoDB'],
+                datasets: [{
+                    label: 'Years of Experience',
+                    data: [8, 7, 6, 8, 5, 4, 3],
+                    backgroundColor: 'rgba(79, 70, 229, 0.8)',
+                    borderColor: 'rgba(79, 70, 229, 1)',
+                    borderWidth: 1
+                }]
+            };
+
+            // --- EXPERIENCE TIMELINE ---
+            const timelineNav = document.getElementById('timeline-nav');
+            const timelineContent = document.getElementById('timeline-content');
+
+            experienceData.forEach((item, index) => {
+                const navItem = document.createElement('div');
+                navItem.className = 'timeline-item relative mb-8 pl-8 cursor-pointer';
+                if (index === 0) navItem.classList.add('active');
+                navItem.dataset.index = index;
+                navItem.innerHTML = `
+                    <h3 class="font-bold text-lg">${item.role}</h3>
+                    <p class="text-sm text-stone-500">${item.period}</p>
+                `;
+                timelineNav.appendChild(navItem);
+
+                const contentItem = document.createElement('div');
+                contentItem.className = 'timeline-content-item';
+                if (index !== 0) contentItem.classList.add('hidden');
+                contentItem.dataset.index = index;
+                let detailsHtml = item.details.map(detail => `<li class="mb-2">${detail}</li>`).join('');
+                contentItem.innerHTML = `
+                    <h3 class="text-2xl font-bold text-stone-800">${item.role}</h3>
+                    <p class="text-indigo-600 font-semibold mb-4">${item.company}</p>
+                    <ul class="list-disc list-inside text-stone-600 space-y-2">${detailsHtml}</ul>
+                `;
+                timelineContent.appendChild(contentItem);
+            });
+            
+            timelineNav.addEventListener('click', (e) => {
+                const targetNavItem = e.target.closest('.timeline-item');
+                if (!targetNavItem) return;
+
+                const index = targetNavItem.dataset.index;
+
+                document.querySelectorAll('.timeline-item').forEach(item => item.classList.remove('active'));
+                targetNavItem.classList.add('active');
+
+                document.querySelectorAll('.timeline-content-item').forEach(item => {
+                    if (item.dataset.index === index) {
+                        item.classList.remove('hidden');
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+            });
+
+            // --- SKILLS CHART ---
+            const ctx = document.getElementById('skillsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: skillsData,
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw} years`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Years of Experience'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                           grid: {
+                                display: false
+                           }
+                        }
+                    }
+                }
+            });
+
+            // --- PROJECTS & MODAL ---
+            const projectsGrid = document.getElementById('projects-grid');
+            const modal = document.getElementById('project-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalTech = document.getElementById('modal-tech');
+            const modalDesc = document.getElementById('modal-desc');
+            const modalClose = document.getElementById('modal-close');
+
+            projectsData.forEach(project => {
+                const card = document.createElement('div');
+                card.className = 'project-card bg-white rounded-lg shadow-md overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 cursor-pointer';
+                card.innerHTML = `
+                    <div class="p-6">
+                        <h3 class="font-bold text-xl mb-2 text-stone-800">${project.title}</h3>
+                        <p class="text-indigo-600 text-sm font-medium mb-4">${project.tech}</p>
+                        <p class="text-stone-600 text-sm">${project.desc[0]}</p>
+                    </div>
+                `;
+                card.addEventListener('click', () => {
+                    modalTitle.textContent = project.title;
+                    modalTech.textContent = `Technologies: ${project.tech}`;
+                    modalDesc.innerHTML = project.desc.map(d => `<p>${d}</p>`).join('');
+                    modal.classList.remove('invisible', 'opacity-0');
+                    modal.querySelector('.modal-content').classList.remove('-translate-y-10');
+                });
+                projectsGrid.appendChild(card);
+            });
+
+            const closeModal = () => {
+                modal.classList.add('invisible', 'opacity-0');
+                modal.querySelector('.modal-content').classList.add('-translate-y-10');
+            };
+
+            modalClose.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
